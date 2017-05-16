@@ -2,6 +2,9 @@ package cn.edu.bupt.springmvc.util;
 
 import static org.junit.Assert.fail;
 
+import cn.edu.bupt.springmvc.core.util.SSHClient;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
@@ -10,7 +13,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 public class DataSourceControllerTest extends AbstractContextControllerTest {
 
-	
+
+//	@AfterClass
+//	public void after(){
+//		SSHClient.PERMSSH
+//	}
 	
 	@Test
 	public void testTestDatabaseAvaliable() throws Exception {
@@ -33,6 +40,7 @@ public class DataSourceControllerTest extends AbstractContextControllerTest {
 	@Test
 	public void testAddDatabaseDataSource() throws Exception {
 		String[] tableNames = {"first_category","question_label"};
+		String[] rowkeys = {"id","id"};
 		MvcResult result = mockMvc
 				.perform(
 						MockMvcRequestBuilders.post("/DataSource/addDatabaseDataSource")
@@ -45,11 +53,13 @@ public class DataSourceControllerTest extends AbstractContextControllerTest {
 						.param("databaseName","knowledge_base")
 						.param("type","mysql")
 						.param("tables[]",tableNames)
-						.param("dataSourceName","BigData")
+								.param("rowkeys[]",rowkeys)
+						.param("")
 						.param("tags","category")
 						.param("isSync","true")
 						.param("hour","12")
 						.param("minute","15")
+								.param("creatorId","1")
 						)
 				.andDo(MockMvcResultHandlers.print())
 				.andReturn();
@@ -91,4 +101,22 @@ public class DataSourceControllerTest extends AbstractContextControllerTest {
 				.andReturn();
 	}
 
+
+	@Test
+	public void testGetLoadFutureResult() throws Exception {
+		MvcResult result = mockMvc
+				.perform(
+						MockMvcRequestBuilders.post("/DataSource/getLoadFutureResult")
+//						.contentType(MediaType.APPLICATION_JSON)
+//						.param("IP","111.207.243.70")
+////						.content(gson.toJson(config))
+//						.param("port","3606")
+//						.param("username","root")
+//						.param("password","cYz#P@ss%w0rd$868")
+								.param("creatorId","1")
+//						.param("type","mysql")
+				)
+				.andDo(MockMvcResultHandlers.print())
+				.andReturn();
+	}
 }

@@ -4,9 +4,9 @@ import java.sql.SQLException;
 
 import javax.annotation.Resource;
 
+import cn.edu.bupt.springmvc.web.dao.FolderTableMapper;
 import org.springframework.stereotype.Service;
 
-import cn.edu.bupt.springmvc.web.dao.FolderTableMapper;
 import cn.edu.bupt.springmvc.web.model.FolderTable;
 import cn.edu.bupt.springmvc.web.service.FolderService;
 
@@ -15,13 +15,24 @@ public class FolderServiceImpl implements FolderService {
 
 	@Resource
 	private FolderTableMapper folderTableDao;
-	
-	public FolderTable ifNotFindThenCreate(Integer parentFolderId, String folderName,String type) throws SQLException{
+	@Override
+	public FolderTable getWorkTableFolder(){
+		return folderTableDao.selectByPrimaryKey(2);
+	}
+
+	@Override
+	public FolderTable getDashBoardFolder(){
+		return folderTableDao.selectByPrimaryKey(3);
+	}
+
+	@Override
+	public FolderTable ifNotFindThenCreate(Integer parentFolderId, String folderName, String type, int creatorId) throws SQLException{
 		FolderTable newFolder = null;
 		if(parentFolderId == null && type.toLowerCase().trim().equals("root")){
 			parentFolderId = -1;
 			newFolder = new FolderTable();
-			newFolder.setName(folderName);newFolder.setParentFolderId(parentFolderId);newFolder.setType(type);
+			newFolder.setName(folderName);newFolder.setParentFolderId(parentFolderId);
+			newFolder.setType(type);newFolder.setOwnerId(creatorId);
 			folderTableDao.insert(newFolder);
 			return newFolder;
 		}

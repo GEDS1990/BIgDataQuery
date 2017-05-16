@@ -40,3 +40,10 @@
 
 #### 2. 在Eclipse
 * File -> Import -> Existing Maven Projects -> ...
+
+
+
+部署：
+部署在测试服务器上  111.207.243.66:8111/opt/service_sub_system/tomcat_cdy/
+
+

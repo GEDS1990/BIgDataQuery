@@ -3,6 +3,7 @@ package cn.edu.bupt.springmvc.core.util;
 public class GenericReturnModel<T> {
 	
 	private boolean result;
+	private int returnCode;
 	private String reason;
 	
 	private T datum;
@@ -30,7 +31,12 @@ public class GenericReturnModel<T> {
 	public void setDatum(T data) {
 		this.datum = data;
 	}
-	
-	
-	
+
+	public int getReturnCode() {
+		return returnCode;
+	}
+
+	public void setReturnCode(int returnCode) {
+		this.returnCode = returnCode;
+	}
 }
