@@ -11,12 +11,12 @@ public class HiveConnection {
 
     private static String driverName = "org.apache.hive.jdbc.HiveDriver";
 
-    private Connection con = null;
+    private static Connection con = null;
 
     private HiveConnection(){
     }
 
-    public Connection getHiveConnection() throws SQLException, ClassNotFoundException {
+    public static Connection getHiveConnection() throws SQLException, ClassNotFoundException {
 
         if (con == null){
             Class.forName(driverName);

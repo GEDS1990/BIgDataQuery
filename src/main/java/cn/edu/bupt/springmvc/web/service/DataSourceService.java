@@ -22,7 +22,7 @@ public interface DataSourceService {
 	List<String> getLoadFutureResult() throws InterruptedException, ExecutionException, TimeoutException;
 
     void addCsvDataSource(MultipartFile file, String dataSourceName, String separatorChar,
-						  String quoteChar,int creatorId,String[] columnNames) throws IOException;
+						  String quoteChar,int creatorId,String[] columnNames) throws IOException, SQLException, ClassNotFoundException;
 
 
 //	boolean getLoadFutureResult() throws InterruptedException, ExecutionException, TimeoutException;

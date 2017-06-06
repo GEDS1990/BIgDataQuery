@@ -209,15 +209,21 @@ public class DataSourceController {
 	@RequestMapping("/addCsvDataSource")
 	public  @ResponseBody ReturnModel addCsvDataSource(
 			@RequestParam (value = "file",required = true) MultipartFile file,
-			int creatorId,String dataSourceName,String separatorChar,String quoteChar
+			int creatorId,String dataSourceName,String separatorChar,String quoteChar,String[] columnNames
 	){
 		ReturnModel result = new ReturnModel();
 		try {
-			dataSourceService.addCsvDataSource(file,dataSourceName,separatorChar,quoteChar,creatorId);
+			dataSourceService.addCsvDataSource(file,dataSourceName,separatorChar,quoteChar,creatorId,columnNames);
 		} catch (IOException e) {
 			e.printStackTrace();
 			result.setResult(false);result.setReason(e.toString());
 			return result;
+		} catch (SQLException e) {
+//执行hive建表或者数据load失败
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+//
+			e.printStackTrace();
 		}
 		return result;
 	}

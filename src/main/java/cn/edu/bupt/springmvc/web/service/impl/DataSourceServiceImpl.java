@@ -3,6 +3,7 @@ package cn.edu.bupt.springmvc.web.service.impl;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import javax.annotation.Resource;
 
 import cn.edu.bupt.springmvc.core.task.RelationalDBLoadTask;
 import cn.edu.bupt.springmvc.core.util.FileUtil;
+import cn.edu.bupt.springmvc.core.util.HiveConnection;
 import cn.edu.bupt.springmvc.web.dao.*;
 import cn.edu.bupt.springmvc.web.model.FileInfo;
 import cn.edu.bupt.springmvc.web.model.WorkTable;
@@ -43,6 +45,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class DataSourceServiceImpl implements DataSourceService {
 
 	private final String pathPerfix = "/var/tmp/bigquery";
+
+	private final String hiveDBName = "bigquery";
 
 	private DateFormat df = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
 
@@ -144,32 +148,37 @@ public class DataSourceServiceImpl implements DataSourceService {
 	@Override
 	public void addCsvDataSource(MultipartFile file, String dataSourceName,
 								 String separatorChar,String quoteChar, int creatorId,
-								String[] columnNames) throws IOException {
+								String[] columnNames) throws IOException, SQLException, ClassNotFoundException {
 		Date d = new Date();
 
 		String fullName = file.getOriginalFilename();
 		int index = fullName.lastIndexOf('.');
 		String namePerfix = fullName.substring(0,index);
 		String nameSuffix = fullName.substring(index+1);
-		String savedFileFullNamePrefix = pathPerfix+namePerfix+df.format(d);
+		
+		String savedFileFullNamePrefix = namePerfix+df.format(d);
 		String savedFileFullNameSuffix = nameSuffix;
-		String savedFileFullName = pathPerfix+namePerfix+df.format(d)+"."+nameSuffix;
+		String hiveTableName = savedFileFullNamePrefix;
+		String savedFileFullPath = pathPerfix+"/"+savedFileFullNamePrefix+"."+nameSuffix;
+		//hive执行窗口
+		Statement stat = HiveConnection.getHiveConnection().createStatement();
 
-		File tmpFile = new File(pathPerfix+namePerfix+df.format(d)+"."+nameSuffix);
+
+		
+		
+		File tmpFile = new File(savedFileFullPath);
 		//先将文件拷贝到web服务器上
 		FileUtils.copyInputStreamToFile(file.getInputStream(),tmpFile);
 
 		//将web服务器上的文件传到集群上？ 好像不需要
 
 		//根据csv的内容确定每个字段的类型，根据csv的表头构建hive表
-
-		String createHiveTableSql = generateHiveTableCreateSql(savedFileFullNamePrefix,
-				savedFileFullNameSuffix,separatorChar,quoteChar,columnNames);
+		String createHiveTableSql = generateHiveTableCreateSql(savedFileFullPath,hiveTableName, separatorChar,quoteChar,columnNames);
+		stat.execute(createHiveTableSql);
 		//将文件的数据导入到hive表中
-
+		String loadHiveTableSql = generateLoadHiveTabelSql(savedFileFullPath, hiveTableName);
+		stat.execute(loadHiveTableSql);
 		//web项目的一些管理信息
-
-
 		FileInfo fileInfo = new FileInfo();
 		fileInfo.setName(file.getOriginalFilename()+df.format(d));fileInfo.setSavedFolder(pathPerfix);
 		fileInfo.setUpdateTime(d);fileInfo.setType(FileUtil.getFileType(fullName));
@@ -191,8 +200,15 @@ public class DataSourceServiceImpl implements DataSourceService {
 
 	}
 
-	private String generateHiveTableCreateSql(String savedFileFullNamePrefix,
-											  String savedFileFullNameSuffix,String separatorChar,String quoteChar,
+	public String generateLoadHiveTabelSql(String savedFileFullPath, String hiveTableName) {
+		StringBuffer sql = new StringBuffer();
+//		load data local inpath ‘/liguodong/hivedata/datatest’ overwrite into table testtable;
+		sql.append("load data local inpath '").append(savedFileFullPath).append("' ")
+				.append(" overwrite into table ").append(hiveTableName);
+		return sql.toString();
+	}
+
+	public String generateHiveTableCreateSql(String savedFileFullPath, String hiveTableName, String separatorChar,String quoteChar,
 											  String[] columnNames) throws IOException {
 		/**
 		 * CREATE TABLE csv_table(a string, b string)
@@ -200,8 +216,9 @@ public class DataSourceServiceImpl implements DataSourceService {
 		 * WITH SERDEPROPERTIES (   "separatorChar" = "\t",   "quoteChar"     = "'",   "escapeChar"    = "\\")
 		 * STORED AS TEXTFILE;
 		 */
-		String filePath = pathPerfix + "/"+savedFileFullNamePrefix+"."+savedFileFullNameSuffix;
-		CSVFile csvFile = new CSVFile(filePath,separatorChar,quoteChar,"\\",-1);
+
+		CSVFile csvFile = new CSVFile(savedFileFullPath,separatorChar,quoteChar,"\\",-1);
+
 		StringBuffer sql = null;
 
 		if (columnNames == null){
@@ -219,7 +236,7 @@ public class DataSourceServiceImpl implements DataSourceService {
 
 		Map<Integer,String> types = csvFile.getTypes();
 
-		sql.append("CREATE TABLE `").append(savedFileFullNamePrefix).append("` ").append("( ");
+		sql.append("CREATE TABLE `").append(hiveTableName).append("` ").append("( ");
 
 		for (Integer index: types.keySet()
 			 ) {
@@ -231,6 +248,8 @@ public class DataSourceServiceImpl implements DataSourceService {
 				.append("\"quoteChar\"     = \"").append(quoteChar.trim().charAt(0)).append("\", ")
 				.append(" \"escapeChar\"    = \"\\\\\"").append(") ").append("\n");
 		sql.append("STORED AS TEXTFILE");
+
+		System.out.println(sql.toString());
 
 		return sql.toString();
 	}

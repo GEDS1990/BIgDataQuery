@@ -8,6 +8,7 @@ import org.junit.AfterClass;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
@@ -119,4 +120,25 @@ public class DataSourceControllerTest extends AbstractContextControllerTest {
 				.andDo(MockMvcResultHandlers.print())
 				.andReturn();
 	}
+
+//	@Test
+//	public void testAddCsvDataSource() throws Exception {
+//		MockMultipartHttpServletRequestBuilder mockMultipartHttpServletRequestBuilder
+//				= MockMultipartHttpServletRequestBuilder("/DataSource/addCsvDataSource",null);
+////		MvcResult result = mockMvc
+////				.perform(
+////						MockMultipartHttpServletRequestBuilder.
+////								fileupload("/DataSource/addCsvDataSource")
+//////						.contentType(MediaType.APPLICATION_JSON)
+//////						.param("IP","111.207.243.70")
+////////						.content(gson.toJson(config))
+//////						.param("port","3606")
+//////						.param("username","root")
+//////						.param("password","cYz#P@ss%w0rd$868")
+////								.param("creatorId","1")
+//////						.param("type","mysql")
+////				)
+////				.andDo(MockMvcResultHandlers.print())
+////				.andReturn();
+//	}
 }
